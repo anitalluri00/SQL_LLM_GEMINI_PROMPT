@@ -1,41 +1,24 @@
-# pip install db-sqlite3
-# pip install sqlite3
-import sqlite3
+# Use Amazon Linux 2023 as base
+FROM amazonlinux:2023
 
-#Connectt to SQlite
-#Our database name: Naresh_it_student
-connection=sqlite3.connect("Naresh_it_employee1.db")
+# Set environment vars
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
-# Create a cursor object to insert record,create table
+# Install Python3, pip, and other essentials
+RUN yum -y update && \
+    yum install -y python3 python3-pip && \
+    yum clean all
 
-cursor=connection.cursor()
+# Set working directory
+WORKDIR /app
 
-#create the table
-#Our table name student
-#Columns names are: name, course
-table_info="""
-Create table Naresh_it_employee1(employee_name varchar(30),
-                    employee_role varchar(30),
-                    employee_salary FLOAT);
-"""
-cursor.execute(table_info)
+# Copy all project files
+COPY . .
 
-#Insert the records
+# Install dependencies — skip pip upgrade
+RUN pip3 install -r requirements.txt
 
-cursor.execute('''Insert Into Naresh_it_employee1 values('Omkar Nallagoni','Data Science',75000)''')
-cursor.execute('''Insert Into Naresh_it_employee1 values('Naresh','Data Science',90000)''')
-cursor.execute('''Insert Into Naresh_it_employee1 values('Phani','Data Science',88000)''')
-cursor.execute('''Insert Into Naresh_it_employee1 values('Naga babu','Data Engineer',50000)''')
-cursor.execute('''Insert Into Naresh_it_employee1 values('Ajay','Data Engineer',35000)''')
-cursor.execute('''Insert Into Naresh_it_employee1 values('Pawan','Data Engineer',60000)''')
 
-#Disspaly ALl the records
-
-print("The inserted records are")
-data=cursor.execute('''Select * from Naresh_it_employee1''')
-for row in data:
-    print(row)
-
-#Commit your changes int he databse
-connection.commit()
-connection.close()
+# Run SQL setup first, then Streamlit app
+CMD ["sh", "-c", "python3 sql.py && streamlit run app.py"]
